@@ -611,6 +611,19 @@ LinearLayout、RelativeLayout、FrameLayout、ConstraintLayout
 * 主线程主要负责把 UI 事件分发给合适的 View 或 Widget
 
 ### 你是如何做应用适配的？[参考链接](http://www.cocoachina.com/android/20151030/13971.html)
+1、屏幕适配
+
+* 使用 wrap_content 和 match_parent 而非硬编码尺寸，以适应各种屏幕尺寸和方向
+* 使用相对布局，禁用绝对布局
+* 使用限定符（尺寸限定符、最小宽度限定符、屏幕方向限定符）
+* 使用点九图
+* 使用密度无关像素单位
+* 图片文件放置到合适的 drawable 目录下
+
+2、系统适配
+
+* 同一 API 在不同版本下拥有不同的接口方法时，动态判断系统版本号
+* 使用支持库提供的 API
 
 ### px、dp、sp、ppi、dpi 有什么区别，如何换算，给出公式
 1、px 为像素点数
