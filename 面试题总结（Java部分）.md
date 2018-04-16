@@ -350,3 +350,83 @@ Java 中的对象以按值传递的形式进行调用，所有方法得到的都
 ### 什么是 Java 优先级队列？
 
 ### 什么是设计模式 [Link](https://github.com/iluwatar/java-design-patterns)
+
+### 什么是注解？
+
+### 多进程和多线程的区别[（参考！经常看！）](http://markxu.coding.me/wiki/%E5%A4%9A%E7%BA%BF%E7%A8%8B/Java%E5%9F%BA%E7%A1%80%EF%BC%9A%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86.html)
+* 本质区别在于：每个进程拥有自己的一整套变量，而线程则共享数据。
+
+* 多进程：
+
+进程是程序的一次执行。计算机在同一刻运行多个程序，每个程序称为一个进程（计算机将 CPU 的时间片分配给每一个进程）
+
+* 多线程：
+
+线程是 CPU 的基本调度单位。一个程序同时执行多个任务，每个任务称为一个线程
+
+补充：线程的状态切换
+
+![](http://oj1xifth5.bkt.clouddn.com/thread_1.png)
+
+### 进程间通讯方法，线程间通讯方法
+1、进程间通讯
+
+* Broadcast
+* Intent／Bundle
+* File 共享
+* Messenger
+* AIDL
+* ContentProvider
+* Socket
+
+2、线程间通讯
+
+* Handler（AsyncTask、Message、runOnUiThread 等）
+* EventBus
+* LocalBroadcast
+
+### sleep 和 wait 的区别
+二者都可以暂停当前线程，释放 CPU 控制权，区别在于：
+
+作用于谁和是否释放锁？
+
+* wait 方法作用于 Object，sleep 方法作用于 Thread
+* Object.wait 方法在释放 CPU 的同时，释放了对象锁的控制，使得其他线程可以使用同步控制块或方法；Thread.sleep 方法没有释放锁
+
+### JNI 是什么
+Java native interface，Java 本地接口
+
+### 概述 Java 垃圾回收机制，如何更有效的管理内存，减少 OOM 的概率[参考](http://www.cnblogs.com/vamei/archive/2013/04/28/3048353.html)
+1、内存结构：
+
+* 内存分为栈（satck）和堆（heap）两部分
+* JVM 中栈记录了方法调用，每个线程拥有一个栈（栈的每一帧中保存有该方法调用的参数、局部变量和返回地址）
+* 栈中被调用方法运行结束时，相应的帧也会删除，参数和局部变量占用的空间也会释放
+* 堆是 JVM 中可以自由分配给对象的区域，堆区由所有线程共享
+
+2、垃圾回收
+
+* JVM 自动清空堆中无用对象占用的空间就是垃圾回收
+* 当一个对象没有引用指向它时，为不可达对象，此时会被回收
+
+3、对象是否回收的依据
+
+* 引用计数算法
+* 可达性分析算法
+
+4、回收基础
+
+* Mark and sweep 机制：每个对象都有用于表示该对象是否可达的标记信息。垃圾回收启动时，Java 程序暂停运行，JVM 从根出发，找到所有可达对象并标记。然后扫描整个堆找到不可达对象，清空它们占用的内存
+* Copy and sweep 机制：堆被分为两个区域，对象存活于两个堆中的一个。垃圾回收启动时，Java 程序暂停运行，JVM 从根出发找到所有可到达对象，把所有可到达对象复制到空白区域中并紧密排列（并修改由于对象地址变化引起的引用变化）。最后直接清空对象原先所存活的区域，使其成为新的空白区域。
+* 对象比较长寿适用于 mark and sweep 机制；对象比较活跃则适用于 copy and sweep 机制，避免出现空隙
+* 世代指对象经历过的垃圾回收的次数，堆分为三个世代：永久世代、成熟世代、年轻世代
+* 永久世代的对象不会被垃圾回收
+* 年轻世代进一步分为三个区域：eden 区、from 区、to 区
+* 新生对象指从上次垃圾回收后创建的对象，存在于 eden 区。from 区和 to 区相当于 copy and sweep 中的两个区
+
+5、分代回收
+
+* 新建对象无法放入 eden 区时，会触发 minor collection，JVM 会采用 copy and sweep 机制将 eden 区和 from 区的可到达对象复制到 to 区，进行一次垃圾回收清空 eden 区和 from 区，to 区则存放着紧密排列的对象。接着 from 区成为了新的 to 区，原来的 to 区成为了新的 from 区
+* 当 minor collection 时发现 to 区也放不下时，会将部分对象放入成熟世代
+* 即使 to 区没有满，JVM 也会移动世代足够久远的对象到成熟世代
+* 如果成熟世代放满对象无法放入新的对象，会触发 minor collection，JVM 采用 mark and sweep 机制对成熟世代进行垃圾回收
