@@ -1,5 +1,3 @@
-## Android 核心
-
 ### 阐述一下 Activity 的生命周期。[参考链接](https://developer.android.com/guide/components/activities.html?hl=zh-cn)
 
 ![](http://oj1xifth5.bkt.clouddn.com/activity_lifecycle.png)
@@ -85,11 +83,9 @@ onCreate() -> onContentChanged() -> onStart() -> onPostCreate()-> onResume() -> 
 	* Service 不会自动退出，需要手动 stopSelf、stopService、unbindService 或者内存不足被动回收；
 	* IntentService 的 onHandleIntent 方法执行完毕后会自动退出。当有多次请求（即多次调用 startService）时，因只有一个工作线程，所以会一个一个进行处理，处理完毕后退出
 
-### Android 应用的结构是什么？
-
 ### Android 应用中如何保存数据。
 
-分为保存键值集（SharedPreferences）、保存文件（分为内部存储和外部存储）、在 SQL 数据库中保存数据以及在网络中使用网络存储。
+分为保存键值集（SharedPreferences）、保存文件（分为内部存储和外部存储）、在 SQL 数据库中保存数据以及在网络中使用网络存储和 ContentProvider。
 	
 其中：
 	
@@ -120,26 +116,26 @@ onCreate() -> onContentChanged() -> onStart() -> onPostCreate()-> onResume() -> 
 * 使用广播
 * 使用 EventBus
 
-### 阐述一下 Android 的通知系统。[参考链接1](https://developer.android.com/guide/topics/ui/notifiers/notifications.html?hl=zh-cn#Heads-up)，[参考链接2](http://www.jianshu.com/p/678e2322fd41)
+### Activity 之间如何通信，Activity 与 Service 之间如何通信
+#### Activity 之间通信方式
+1、基于消息的通讯机制：Intent。缺点：只能传递基本数据类型或序列化数据，不可序列化的数据无法传递
 
-通知是可以在应用常规 UI 外部可以向用户显示的消息。
+2、广播
 
-* 创建通知：
+3、EventBus
 
-	* 在 NotificationCompat.Builder 对象中指定通知的相关信息
-	* 调用 notify 方法将通知发送出去
-	* 通知操作由 PendingIntent 定义
+4、数据存储（File、SharedPreferences、SQLite、ContentProvider）
 
-* 更新通知：
+5、利用 static 静态数据
 
-	* 调用 notify 方法时调用带有 id 的通知
-	* 更新或重新创建 NotificationCompat.Builder 对象，重新发送相同 id 的通知对象即可
+#### Activity 与 Service 之间
+1、Binder 对象
 
-* 删除通知：
+2、广播
 
-	* 用户手动清除（如果可以清除的话）
-	* 创建通知时调用了 setAutoCancle 方法，且用户点击了通知
-	* 调用 cancle 方法，cancleAll 方法
+3、EventBus
+
+4、Intent
 
 ### 两个不同的 app 之间如何交互。
 
@@ -193,42 +189,18 @@ onCreate() -> onContentChanged() -> onStart() -> onPostCreate()-> onResume() -> 
 	
 ![](http://oj1pajfyu.bkt.clouddn.com/activity_fragment_lifecycle.png)
 
-### 如何理解 Android 的 Dialog ？[参考链接](https://developer.android.com/guide/topics/ui/dialogs.html?hl=zh-cn#FullscreenDialog)
-
-* Dialog 是对话框的基类，使用时应实例化其子类：AlertDialog、DatePickerDialog 或 TimePickerDialog
-* 应使用 DialogFragment 作为对话框的容器
-* 创建对话框：
-
-	* 通过扩展 DialogFragment 并在 onCreateDialog 方法中 创建 AlertDialog
-	* AlertDialog 包括：标题、内容区域、操作按钮
-	* 其中内容区域可以为：单选列表、单选框、复选框
-	* 按钮可以为：肯定、否定、中性
-	* 可以自定义布局
-
-* 事件回传给对话框的宿主
-
-	* 通过 interface 实现，在 DialogFragment 的 onAttach 方法
-
-* 显示对话框：
-
-	* 调用 DialogFragment 实例的 show 方法
-
-* 清除对话框
-
-	* 用户做出选择后会被清除
-	* 调用 dismiss 方法手动清除
-
-* 取消对话框
-
-	* 代表用户显式离开，而不完成任务（点击返回键、触摸对话框外部区域）
-	* 调用 cancel 方法手动取消
-
 ### 解释下 Android 的 View 。
 
 * View 是 UI 组件最基本的构建块
 * 一个 View 占据屏幕的一块区域，负责绘制和事件处理
 
-### 你能创建自定义 View 吗？具体是如何创建的？[参考链接](http://www.gcssloop.com/customview/CustomViewProcess)
+### Activity、Window、View 关系[参考](https://www.jianshu.com/p/a533467f5af5)
+* 每个 Activity 包含了唯一的一个 PhoneWindow（Window 的子类），在 attach 方法里进行初始化
+* Activity 实现了 Window 的接口，Window 接收到外界的改变时就会回调 Activity 相应的方法
+* View 是 Android 中的视图单元，必须依附于 Window 而存在
+* View 和 Window 之间通过 ViewRootImpl 进行关联到一起，ViewRootImpl 可以看作 ViewTree 的管理者（Activity 被创建完成后，会将 DecorView 添加到 Window 中，同时创建 ViewRootImpl 并与 DecorView 关联）
+
+### 你能创建自定义 View 吗？具体是如何创建的？工作原理？[参考链接](http://www.gcssloop.com/customview/CustomViewProcess)
 
 * 自定义 View 包括自定义 View 和自定义 ViewGroup
 * 自定义 View 一般继承自 View、SurfaceView 或其他 View，不包含子 View
@@ -278,11 +250,12 @@ onCreate() -> onContentChanged() -> onStart() -> onPostCreate()-> onResume() -> 
 	* 启动一个新的任务，创建新实例
 	* 并且新的任务中不会再添加其他 Activity
 
+### Activity 启动模式的应用场景？
 ### 解释一下 Android 中的 Intent 。[Link](https://stackoverflow.com/questions/6578051/what-is-an-intent-in-android)
 
-* Intent 是一个消息传递对象，在启动其他应用组件时使用
-* 可以启动 Activity，启动 Service，发送广播
-* Intent 可以描述目标组件的一些特性，并可以携带一些必要数据
+1、Intent 是一个消息传递对象，可以启动 Activity、Service，发送广播，同时携带必要的数据。
+
+2、分为显式 Intent 和隐式 Intent，显式 Intent 按名称指定要启动的组件，隐式 Intent 则是声明要执行的操作，允许其他的应用组件来处理。
 
 ### 什么是隐式 Intent ？
 
@@ -303,6 +276,7 @@ onCreate() -> onContentChanged() -> onStart() -> onPostCreate()-> onResume() -> 
 	* onProgressUpdate 在 doInBackground 方法中调用publishProgress 方法时会进行回调，可以进行后台操作状态的展示更新，运行在主线程
 	* onPostExecute 在后台操作完成后调用，运行在主线程
 
+### AsyncTask 的原理？
 ### 如何理解 Android 中的广播。[Link](https://stackoverflow.com/questions/5296987/what-is-broadcastreceiver-and-when-we-use-it)
 
 * 广播接收器是一种用于响应系统范围广播通知的组件
@@ -315,6 +289,22 @@ onCreate() -> onContentChanged() -> onStart() -> onPostCreate()-> onResume() -> 
 * 使用这个机制发出的广播仅在应用内部传递
 * 广播接收器也只能接收本应用发出的广播
 * 本地广播比系统全局广播更加安全、有效
+
+### 广播和 EventBus 的区别[参考1](https://www.jianshu.com/p/fe377b82f146)、[参考2](http://www.cnblogs.com/lwbqqyumidi/p/4168017.html)
+1、全局广播是重量级别的，消耗资源比较多，优点是可以跨进程；
+
+2、本地广播会比全局广播轻量一些，不能跨进程
+
+3、EventBus 不能跨进程，比广播更轻量
+
+4、广播基于 Android 提供的 Binder 机制，而 EventBus 基于反射，但二者都符合观察者模式，观察者和观察目标低耦合
+
+补充，广播的大概工作机制如下：
+
+* 广播接收者 BroadcastReceiver 通过 Binder 机制向 AMS(Activity Manager Service)进行注册；
+* 广播发送者通过 Binder 机制向 AMS 发送广播；
+* AMS 查找符合相应条件（IntentFilter/Permission 等）的 BroadcastReceiver，将广播发送到 BroadcastReceiver（一般情况下是Activity）相应的消息循环队列中；
+* 消息循环执行拿到此广播，回调 BroadcastReceiver 中的 onReceive()方法。
 
 ### 什么是 JobScheduler ？[参考链接](http://blog.csdn.net/bboyfeiyu/article/details/44809395)
 
@@ -333,9 +323,11 @@ onCreate() -> onContentChanged() -> onStart() -> onPostCreate()-> onResume() -> 
 
 Android 支持库提供了许多没有内置到框架中的功能。
 
-* 向后兼容：提供了许多没有内置到框架中的功能、UI 元素，可以保证使用了新系统功能的 app 可以向后兼容旧版本系统
-* 提供布局模式、界面元素：可以避免再做一些重复性工作
-* 支持不同形态的设备：可以通过支持库为各个平台（手机、电视、手表等）提供功能
+1、向下兼容。保证使用了新系统功能的 App 可以兼容旧的系统，保证了高版本 SDK 开发的向下兼容。
+
+2、提供了布局模式、界面元素，可以避免再做一些重复性的工作
+
+3、支持不同形态的设备，可以通过支持库为手机、电视、手表等提供功能
 
 ### 如何理解 Android 中的 ContentProvider 。它通常用来干什么？[参考链接](https://developer.android.com/guide/components/fundamentals.html)
 
@@ -416,20 +408,32 @@ ADB 是 Android Debug Bridge 的简称，即 Android 调试桥。是一个通用
 
 ### 解释一下 broadcast 和 intent 在 app 内传递消息的工作流程。
 
-### 当 Bitmap 占用较多内存时，你是怎么处理的？
+### Bitmap 如何优化，三级缓存的思想与逻辑
+优化策略：
+
+* 对图片质量进行压缩，通过 Bitmap.compress()
+* 对图片尺寸进行压缩，通过设置 BitmapFactory.Options.inSampleSize 值
+* 对图片进行复用：内存缓存、磁盘缓存、网络获取
 * 及时释放 Bitmap 内存
 * 捕获 OutOfMemory 异常
 * 将图片放置于合适的 drawable 文件夹下
+
+三级缓存：
+
+* 最近最少使用原则
+* 缓存策略包括缓存的添加、获取和删除操作
+* LruCache 内部采用一个 LinkedHashMap 以强引用的方式来存储缓存对象，提供了 get、put、remove 方法来操作缓存对象
+* DiskLruCache 使用 open 方法来创建，创建时指定缓存存储路径。缓存添加通过 Editor 来完成，通过图片 url 的 key 可以获取到相应的 Editor 对象，从而获取到文件输出流写入到文件系统。DiskLruCache 提供了 get 方法可以得到一个 Snapshot 对象，通过 Snapshot 对象可以得到缓存的文件输入流从而拿到缓存对象
+
+补充：
+
+知名的图片加载框架有 Glide、Picasso、Fresco 等
+
+一个优秀的图片加载框架应该有如下功能：
+
+* 图片的同步加载、异步加载（向调用者提供所加载的图片）
 * 图片压缩
-
-	* 质量压缩，通过 Bitmap.compress()
-	* 内存压缩，通过设置 BitmapFactory.Options.inSampleSize 值
-
-* 图片复用
-
-	* 内存缓存
-	* 磁盘缓存
-	* Bitmap 复用
+* 内存缓存、磁盘缓存、网络拉取
 
 ### Android 应用有哪些不同的存储数据的方式？
 
@@ -507,7 +511,19 @@ Dalvik 与 JVM 的关系：
 * Activity 启动时，会回调 onCreate 和 onRestoreInstanceState 方法（onStart 方法之后调用），我们可以在这两个方法里拿到 Activity 销毁时保存的数据
 * 在 onCreate 方法中取 Bundle 对象时，需要先判断是否为空，因为正常启动的 Activity 时系统无保存状态
 
-### 相对布局和线性布局的区别。
+### 常用布局有几种，区别
+LinearLayout、RelativeLayout、FrameLayout、ConstraintLayout
+
+#### 区别
+1、RelativeLayout 子 View 的排列方式是基于彼此的依赖关系，所以在测量时会在横向和纵向上分别测量一次
+
+2、LinearLayout 为线性排列，在没有设置 weight 属性时只测量一次，设置了 weight 属性也是测量两次。
+
+3、当布局较简单时使用 LinearLayout，布局复杂时使用 RelativeLayout 以降低布局层级深度
+
+4、帧布局会默认把所有控件摆放在布局的左上角，并覆盖在前一控件的上层，当然可以通过 layout_gravity 属性来指定对齐方式
+
+5、ConstraintLayout 使用约束的方式来指定各个控件的位置和关系，View 的位置受到三类约束：其他 View、父容器、基准线，并且支持设置比例。可以使布局完全扁平化，性能更高
 
 ### 如何实现 XML 命名空间？[参考链接1](http://www.w3school.com.cn/xml/xml_namespaces.asp)、[参考链接2](http://blog.qiji.tech/archives/3744)
 
@@ -526,14 +542,43 @@ Dalvik 与 JVM 的关系：
 
 ### 谈谈位图池。[Link](https://blog.mindorks.com/how-to-use-bitmap-pool-in-android-56c71a55533c)
 
+### 内存泄漏是什么，如何发现，为什么引起，如何解决（[参考链接](http://xuchongyang.com/2017/10/16/Java-%E5%86%85%E5%AD%98%E6%B3%84%E6%BC%8F%E5%AD%A6%E4%B9%A0/)）
+#### 是什么
+存在还被引用着，但已经无用的对象，造成该对象占用的空间无法被垃圾回收器回收
+#### 如何发现
+1、静态代码分析工具：Lint
 
+2、严格模式：StrictMode
 
-### 在 Android 中如何避免内存泄漏？[参考链接](http://xuchongyang.com/2017/10/16/Java-%E5%86%85%E5%AD%98%E6%B3%84%E6%BC%8F%E5%AD%A6%E4%B9%A0/)
+3、Android Profiler（Android Memory Monitor）
 
-* 将非静态内部类改为静态内部类
-* 通过程序逻辑切段非静态内部类所持有的外部类引用
-* 单例模式使用生命周期更长的 Context
-* 及时关闭各种连接（数据库、网络、cursor 等），释放资源
+4、LeakCanary
+
+5、Memory Analyzer（MAT）
+
+6、adb shell dumpsys meminfo [PackageName]
+
+#### 为什么引起
+一般都是由于长生命周期对象持有短生命周期对象引用造成：
+
+1、非静态内部类
+
+2、单例模式
+
+3、静态集合类
+
+4、资源未及时释放
+
+5、HashSet 集合中对象的属性被修改
+
+#### 如何解决
+1、改用静态内部类
+
+2、在单例模式中使用生命周期更长的 Context
+
+3、通过程序逻辑切段非静态内部类所持有的外部类引用
+
+4、及时关闭各种连接（数据库、网络、cursor 等），释放资源
 
 ### Android 桌面的小部件是什么？
 
@@ -545,14 +590,6 @@ Dalvik 与 JVM 的关系：
 
 * AAPT 是 Android Asset Packaging Tool 的缩写，为 SDK 自带的工具
 * 可以查看、创建、更新 zip 格式的文档附件（zip、jar、apk），也可以将资源文件编译成二进制文件
-
-### 你是如何在 Android 应用程序中发现内存泄漏的？[参考链接](http://droidyue.com/blog/2016/11/23/memory-leaks-in-android/index.html)
-
-发现内存泄漏的方法：
-	
-* 使用 LeakCanary
-* 使用 Android Monitor
-* 启用 StrictMode
 
 ### 你如何排查应用崩溃的原因？
 
@@ -573,7 +610,25 @@ Dalvik 与 JVM 的关系：
 * 如果主线程执行耗时操作的话，当 UI 事件发生时，让用户等待时间超过 5 秒而未处理就会出现 ANR
 * 主线程主要负责把 UI 事件分发给合适的 View 或 Widget
 
-### 你是如何适配不同分辨率的手机的？[参考链接](http://www.cocoachina.com/android/20151030/13971.html)
+### 你是如何做应用适配的？[参考链接](http://www.cocoachina.com/android/20151030/13971.html)
+
+### px、dp、sp、ppi、dpi 有什么区别，如何换算，给出公式
+1、px 为像素点数
+
+2、ppi 与 dpi 均代表像素密度，即每英寸上的像素点数
+
+3、dp 为像素无关密度，以 160 ppi 为基准，1dp = 1px
+
+4、sp 与 dp 类似，用于描述字体大小，以 160 ppi 为基准，当字体大小为 100% 时，1sp = 1px
+
+换算公式（待定？）：
+
+```plain
+ppi = √(屏幕高度像素数² + 屏幕宽度像素数²) / 屏幕对角线英寸数
+
+px = dp * ppi / 160
+px = sp * ppi / 160
+```
 
 ### 如何理解 Doze 模式。如何理解应用程序待机模式（App Standby）。
 
@@ -644,6 +699,7 @@ VM 策略检查内容有：
 功能上：
 
 * RecyclerView 新增了 LayoutManager，布局效果更丰富，包括线性布局、网格布局、瀑布流布局等
+* RecyclerView 高度解耦，LayoutManager 负责布局显示，ItemDecoration 负责 item 分割线，ItemAnimator 负责 item 增删动画。
 
 使用上：
 
@@ -657,6 +713,19 @@ VM 策略检查内容有：
 * 使用 ListView 或 RecyclerView 时，每个 item 在进入用户视野时会从 item 的 xml 文件中创建 view 对象，这一步可以利用 ConvertView 对创建好的布局进行缓存，直接从 ConvertView 中取即可。
 * 拿到 item 布局后，再 findViewById 找到 item 的子 view 的控件对象，这一步是树查找操作极其耗时。
 * 可以创建一个 ViewHolder 对象，将 item 子控件的实例都存放在 ViewHolder 对象中，这样就不用每次 findViewById 了，提高效率
+
+### ListView 如何优化
+1、对布局进行缓存，可以避免在滚动时每次都将布局加载一遍
+
+2、使用 ViewHolder 对布局控件的实例进行缓存，并把 ViewHolder 对象存储在刚缓存的 View 中。可以避免每次显示时都执行 finViewById 操作
+
+3、分批加载与分页加载相结合
+
+4、Adapter 的 getView 方法中减少耗时逻辑或加载图片等
+
+5、减少 item 布局的层次
+
+6、快速滑动时不要加载图片
 
 ### 什么是 PendingIntent ？
 
@@ -730,8 +799,6 @@ Alarm 机制简介：参考《第一行代码》Page469
 	
 * 粘性广播：粘性广播发送后，再进行注册的广播接收器也可接收到最后发出的一条该广播（注：粘性广播在 API 21 中已被 deprecated）
 * 非粘性广播：广播发送后注册的广播接收器无法接收到该广播
-
-### 你开发过组件吗？请描述一下。[Link](https://blog.mindorks.com/android-widgets-ad3d166458d3)
 
 ### 如何理解上下文（Context）。怎么使用它？[参考链接1](http://blog.csdn.net/guolin_blog/article/details/47028975)、[参考链接2](http://blog.csdn.net/lmj623565791/article/details/40481055)
 
@@ -845,17 +912,7 @@ Context 的继承关系：
 	* 可复用的组件抽取出来使用 include 引入
 * 自定义控件进行优化（clipRect、quickReject）
 
-### 什么是渲染脚本（renderscript）？[Link](https://blog.mindorks.com/comparing-android-ndk-and-renderscript-1a718c01f6fe)
-
 ### FlatBuffers 和 JSON 的区别。[Link](https://blog.mindorks.com/why-consider-flatbuffer-over-json-2e4aa8d4ed07)
-
-### 谈谈 Android 的注解。[Link1](https://blog.mindorks.com/creating-custom-annotations-in-android-a855c5b43ed9), [Link2](https://blog.mindorks.com/improve-your-android-coding-through-annotations-26b3273c137a)
-
-### 描述一下约束布局（Constraint Layout）。[参考链接](http://www.jianshu.com/p/32a0a6e0a98a)
-
-* 根据布局中其他元素或视图，确定 View 在布局中的位置
-* View 的位置受到三类约束：其他 View、父容器、基准线
-* 支持设置比例
 
 ### 阐述一下 Android 中的 HashMap , ArrayMap 和 SparseArray 。[Link](https://blog.mindorks.com/android-app-optimization-using-arraymap-and-sparsearray-f2b4e2e3dc47)
 
@@ -889,11 +946,37 @@ Context 的继承关系：
 	* Handler 的 mCallback 不为空时，调用 Handler 的 mCallback
 	* 上面俩都为空时，才调用 handleMessage，也就是我们经常重写的那个方法
 
-### 如何降低 Android 应用的耗电量？[Link](https://blog.mindorks.com/battery-optimization-for-android-apps-f4ef6170ff70)
+#### Handler 的作用
+1、负责消息的发送：通过调用 post 方法或 sendMessage 方法最终向消息队列中插入一条消息
 
-### SnapHelper 是什么？[Link](https://blog.mindorks.com/using-snaphelper-in-recyclerview-fc616b6833e8)
+2、负责消息的处理：首先判断 Message 的 callback 是否为 null，不为 null 直接执行其 run 方法；否则再判断 mCallback 是否为 null，不为 null 直接执行其 handleMessage 方法；否则调用 Handler 对象的 handleMessage 方法
 
-### 在 Android 中怎么处理多点触控？[link](https://arjun-sna.github.io/android/2016/07/20/multi-touch-android/)
+### Handler 是什么，原理，使用方法
+#### 是什么
+Handler 用于线程间通信，主要负责 Android 消息机制中消息的发送和接收。
+
+#### 发送
+通过向消息队列插入一条消息实现发送，
+
+使用方法：
+
+发送消息可以通过 Handler 对象的 sendMessage 的一系列方法和 post 一系列方法来实现。
+
+#### 接收
+1、首先检查 Message 的 callback 是否为空，不为空则调用其 run 方法
+
+2、如果为空，则检查 mCallback 是否为空，不为空调用其 handleMessage 方法。通过 mCallback 来创建 Handler 对象，可以实现不用派生 Handler 的子类就可以使用 Handler
+
+3、如果为空，则调用 handleMessage 方法
+
+接收的使用方法：
+
+1、派生 Handler 的子类重写 handleMessage 方法
+
+2、构造 Handler 对象时传入 Handler.Callback 参数
+
+#### Handler 和 AsyncTask 的关系
+AsyncTask 对 Handler 进行了封装，我们在使用时只需要派生 AsyncTask 的子类，并重写 onPreExecute、doInBackground、onProgressUpdate、onPostExecute 这几个方法即可。
 
 ### 谈谈对 RxJava 的理解
 * Rxjava 是一个实现异步操作的库
@@ -908,7 +991,132 @@ Context 的继承关系：
 * return（View）代表：inflate 方法的返回值是一个 View，为即将加载出来的视图结构的根布局。如果 attachToRoot 为 true，则返回的 View 为刚才的 root；否则返回加载出来 View 的根布局
 
 ### Maven 和 Gradle 的区别
+#### Gradle 的优势在哪
+Gradle 的功能：依赖管理、多模块构建、
+
+* Maven 基于 XML 配置繁琐，阅读性差，Gradle 基于 Groovy，简化了构建代码的行数，易于阅读
+
+1、依赖管理方面：Gradle 支持依赖动态版本管理，解决依赖冲突机制更明确
+
+2、多模块构建方面：Gradle 使用 allprojects 和 subprojects 来定义里面的配置是应用于所有项目还是子项目，更加灵活
+
+3、构建周期方面：Gradle 本身与项目构建周期是解耦的，可以灵活的增删 task
 
 ### OkHttp、Retrofit 的区别
 
-### 介绍下观察者模式
+### 如何做性能优化？[参考1](https://juejin.im/post/5a0d30e151882546d71ee49e#heading-16)
+#### 内存优化
+1、避免内存泄漏
+
+* 使用静态内部类加弱饮用的方式
+* 单例模式使用生命周期更长的 Context
+* 通过程序逻辑切段引用（关闭子线程、清除消息队列的所有消息）
+* 静态集合中的无用对象及时移除
+* 及时关闭无用的连接
+
+2、图片加载进行优化，防止瞬间申请过大内存
+
+* 按需加载（质量压缩、尺寸压缩）
+* 图片的复用（三级缓存：内存缓存、磁盘缓存、网络拉取）
+* 使用合适的颜色模式
+* ListView、RecyclerView 滑动时不进行加载图片
+
+#### UI 优化（布局优化、绘制优化）
+1、布局优化
+
+* 减少过度绘制
+* 简单布局使用 LinearLayout，复杂布局使用 RelativeLayout，以减少布局嵌套，或者使用谷歌最新推出的 ConstraintLayout
+
+2、绘制优化
+
+在 View 的 onDraw 方法中：
+
+* 避免创建新的局部对象，onDraw 方法是实时执行的，频繁创建临时对象会造成系统不断 gc，降低效率
+* 避免执行耗时操作
+* 避免使用循环操作
+
+#### 速度优化（线程优化、网络优化）
+
+1、线程优化
+
+* 解决 ANR 问题
+* 避免在 UI 线程执行耗时操作，在子线程执行并使用 AsyncTask 或 Handler 来协助
+
+2、网络优化
+
+图片加载时
+
+* 采用谷歌的 WebP 格式的图片，可大幅节省流量
+* 使用缩略图
+
+其他方面
+
+* 对服务端返回的数据进行缓存 
+* 尽可能使用断点下载
+* 刷新数据时进行局部刷新而不是全部刷新
+
+#### 电量优化
+* 进行网络请求时，先判断网络状态
+* 同时有 Wi-Fi 和移动网络的情况下，优先使用 Wi-Fi 网络请求
+* 后台任务尽可能少的唤醒 CPU
+
+#### 启动优化
+* Application 的创建过程减少耗时操作
+* 减少布局层次，提高首次加载速度
+* Activity 生命周期的回调方法中尽量减少耗时操作
+
+### MVC、MVP、MVVM 区别（[参考](https://tech.meituan.com/android_mvvm.html)）
+1、在 MVC 中，View 为 XML 布局文件，Controller 对应于 Activity，处理数据、业务和 UI，Model 为实体模型（数据的获取、存储、状态变化等）。在 Android 中作为 View 的 XML 功能太弱，大量 View 的逻辑写在 Activity 中，所以 Activity 同时充当了 View 和 Controller 的角色，相当臃肿
+
+2、MVP 模式中，View 对应于 Activity 和 XML，Model 依然是实体模型，Presenter 负责 View 与 Model 间的交互和业务逻辑。通过一个抽象的 View 接口将 Presenter 与 View 层进行解耦，Presenter 持有该 View 接口，对该接口进行操作，而不是直接操作 View 层，视图操作和业务逻辑进行了解耦。
+
+缺点：
+
+a、接口粒度不好控制
+
+b、MVP 以 UI 为驱动，更新 UI 时需要考虑线程问题和 Activity 生命周期问题
+
+c、View 和 Presenter 还是有一定的耦合，View 层某个元素发生变化，对应接口还是得改
+
+3、MVVM 中 View 对应于 Activity 和 XML，Model 依然是实体模型，ViewModel 负责 View 和 Model 间的交互及业务逻辑。MVVM 与 MVP 的区别是
+
+a、MVVM 是数据驱动的，数据变化后会自动更新 UI，UI 变化也能反馈到数据层
+
+b、低耦合，ViewModel 只关注数据和业务逻辑，不持有 UI 控件引用，完全不和 UI 打交道，UI 控件变化时，ViewModel 也无需改变，和 MVP 相比，View 和 ViewModel 高度解耦
+
+c、更新 UI 时无需考虑线程问题
+
+d、可复用性强，一个 ViewModel 可以复用到多个 View 中
+
+缺点：
+
+调试比较麻烦：数据绑定使得一个位置的 Bug 被快速传递到别的位置，要定位原始出问题的地方变得不那么容易
+
+### 介绍 Android 的内存管理机制
+
+### 创建线程的几种方式，优缺点？
+1、继承自 Thread
+
+2、Runnable
+
+3、Callable
+
+4、FutureTask
+
+### Layout_gravity 和 gravity 区别，paddingLeft 和 Layout_marginLeft 区别
+#### Layout_gravity 和 gravity 区别
+* layout_gravity 用于指定控件在父布局中的对齐方式
+* gravity 用于指定文字在控件中的对齐方式
+
+#### paddingLeft 和 Layout_marginLeft 区别
+* padding 指内边距，View 内部的内容到 View 的边的距离值
+* margin 指外边距，View 的边到父视图的距离值
+
+### 动画的种类有什么，有啥区别
+动画包括 View 动画（补间动画）、帧动画（Drawable 动画）、属性动画。
+
+1、View 动画仅能作用于 View，只改变了 View 的绘制效果，实际属性值未变
+
+2、帧动画通过加载一系列的 Drawable 资源来创建动画，就像放电影
+
+3、属性动画作用于 View 的属性，通过改变 View 对象的实际属性来实现动画
