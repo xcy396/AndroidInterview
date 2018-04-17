@@ -214,6 +214,8 @@ onCreate() -> onContentChanged() -> onStart() -> onPostCreate()-> onResume() -> 
 	* 绘制内容（onDraw）
 	* 对外提供操作方法和监听回调：控制 View 的状态，监听 View 的变化等
 
+注：onMeasure 中 View 的测量模式与 View 绘制流程中的测量时使用的测量模式一样，可参见[View 三大流程源码分析](http://xuchongyang.com/2017/08/20/View%20%E7%9A%84%E4%B8%89%E5%A4%A7%E6%B5%81%E7%A8%8B%E6%BA%90%E7%A0%81%E5%88%86%E6%9E%90/)
+
 ![](https://ws1.sinaimg.cn/large/c14636dely1fl58olhwpjj20fc0heaay.jpg)
 
 ### 什么是 ViewGroup ，它与 View 的区别在哪里？
@@ -257,6 +259,8 @@ onCreate() -> onContentChanged() -> onStart() -> onPostCreate()-> onResume() -> 
 
 2、分为显式 Intent 和隐式 Intent，显式 Intent 按名称指定要启动的组件，隐式 Intent 则是声明要执行的操作，允许其他的应用组件来处理。
 
+3、Intent 的实现是基于 Binder 机制；Intent 可以通过 Bundle 携带可序列化的对象，Bundle 使用 Parcelable 进行序列化数据。
+
 ### 什么是隐式 Intent ？
 
 * 不指定特定的组件，而是声明要执行的常规操作（Action），从而允许其他应用中的组件来处理它
@@ -277,6 +281,18 @@ onCreate() -> onContentChanged() -> onStart() -> onPostCreate()-> onResume() -> 
 	* onPostExecute 在后台操作完成后调用，运行在主线程
 
 ### AsyncTask 的原理？
+1、首先调用 AsyncTask 的构造方法，构造时对 Handler、WorkerRunnable（Callable） 和 FutureTask 进行初始化
+
+2、然后调用 AsyncTask 的 execute 方法（可以手动设置 Executor，不设置则使用系统默认的 SerialExecutor）
+
+3、首先判断当前 AsyncTask 状态，正在运行或者已经运行过就退出
+
+4、调用 onPreExecute 执行准备工作
+
+5、由 Executor 调用 FutureTask 的 run 方法，在 WorkerRunnable 中执行了 doInBackground
+
+6、依旧是在 WorkerRunnable 中，调用 postResult，将执行结果通过 Handler 发送给主线程；调用 publishProgress 时，也是通过 Handler 将消息发送到主线程的消息队列中
+
 ### 如何理解 Android 中的广播。[Link](https://stackoverflow.com/questions/5296987/what-is-broadcastreceiver-and-when-we-use-it)
 
 * 广播接收器是一种用于响应系统范围广播通知的组件
@@ -378,10 +394,9 @@ ADB 是 Android Debug Bridge 的简称，即 Android 调试桥。是一个通用
 * 以下情况会弹出 ANR 对话框
 
 	* 应用在 5 秒内未响应用户的输入事件（触摸、按键）
-	* BroadcastReceiver 未在 10 秒内完成相应的处理
 	* Activity、Application 回调方法超时时间：5 秒
+	* BroadcastReceiver 回调方法超时时间：10 秒（前台 App 10 秒，后台 App 60 秒）
 	* Service 回调方法超时时间：20 秒
-	* BroadcastReceiver 回调方法超时时间：前台 App 10 秒，后台 App 60 秒
 
 * 如何避免发生 ANR：
 
