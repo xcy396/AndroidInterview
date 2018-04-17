@@ -1148,3 +1148,38 @@ d、可复用性强，一个 ViewModel 可以复用到多个 View 中
 2、帧动画通过加载一系列的 Drawable 资源来创建动画，就像放电影
 
 3、属性动画作用于 View 的属性，通过改变 View 对象的实际属性来实现动画
+
+### 介绍下 Android 中的 IPC 机制（[参考](http://xuchongyang.com/2017/08/14/Binder-%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90/)）
+Android 中的 IPC 方式有：
+
+* AIDL（Binder 机制）
+* Intent／Bundle
+* 文件共享
+* Messenger（底层实现为 AIDL）
+* ContentProvider
+* Socket
+
+Binder 机制：
+
+1、一个进程向驱动申请成为 ServiceManager，来管理 Service
+
+2、各个 Service 依次向 ServiceManager 进行注册
+
+3、Client 想同 Service 进行通信，向 ServiceManager 进行请求对象
+
+4、ServiceManager 给 Client 返回代理对象
+
+5、Client 调用代理对象的方法，传给 ServiceManager
+
+6、ServiceManager 再传递给 Service，拿到 Service 的返回值给 Client
+
+### 介绍下 AIDL 的原理（[参考](http://xuchongyang.com/2017/08/14/Binder-%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90/)）
+1、IBinder 是一个接口，代表一种跨进程传输的能力，实现了这个接口的对象就拥有了跨进程传输的能力
+
+2、IInterface 接口代表了远程 Server 对象所具有的能力
+
+3、静态抽象类 Stub 类为 Binder 本地对象，Stub 类实现了 IBinder、IInterface 接口，说明 Stub 类为 Binder 本地对象，且拥有 Client 需要的能力。
+
+4、Stub 类的 onTransact 方法会处理 Client 传递来的方法：先通过 code 确定是哪个方法，然后从 data 中取出目标方法所需的参数，执行方法，最后向 reply 中写入值。
+
+5、Stub 类有一个静态内部类 Proxy，为 Binder 代理对象。代理对象对于接口方法的处理如下：首先用 Parcel 把数据序列化，然后发起远程调用，调用 Server 端本地对象的 onTransact 方法，远程调用结束后，读取执行结果。
