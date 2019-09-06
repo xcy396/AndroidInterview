@@ -1,4 +1,4 @@
-# View的绘制流程
+# Day：View的绘制流程
 ## View的测量
 1、View的measure方法，根据父布局传递来的MeasureSpec，来确定自己的测量宽、高的值。
 
