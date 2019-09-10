@@ -1,0 +1,27 @@
+# Day：Handler通信机制
+## 关键流程
+1、Looper不断的从MessageQueue中取出Message，然后交给Message对应的Handler处理。同时Handler还执行发送Message到MessageQueue中的动作。
+
+2、Handler对象持有Looper的目的是为了拿到Looper对应的MessageQueue，并往其中插入消息；Looper从MessageQueue中取出Message后，交给Message的target也就是Handler对象处理。
+
+3、Looper对象存储在ThreadLocal中，属于线程局部变量，只能被当前线程访问。
+
+## 详细介绍
+1、Handler调用sendMessage、post方法发送Message，并插入到MessageQueue中，MessaQueue采用单链表结构。
+
+2、Handler类有一个Looper成员变量，Looper属于线程局部变量，每个线程有且只能有一个Looper；Looper类有一个MessageQueue成员变量；Handler持有Looper主要是为了拿到Looper对应的MessageQueue，并往其中插入消息。
+
+3、子线程需要先调用Looper.prepare方法，来创建一个Looper对象存储到ThreadLocal中。然后创建Handler时会调用Looper.myLooper方法获取当前线程的Looper。
+
+4、Looper.loop方法开启消息循环，Looper会循环从其MessageQueue中提取消息，并调用消息的target（也就是Handler）进行分发处理
+
+5、Handler拿到Message后，先判断Message的Callback是否为空，不为空直接执行，消息处理结束；为空则判断Handler的Callback是否为空，不为空则执行，并决定是否进行拦截，拦截则消息处理结束；不拦截则执行Handler的handleMessage方法。
+
+## ThreadLocal介绍
+1、ThreadLocal是一个创建线程局部变量的类。
+
+2、一般情况下，我们创建的线程可以被任何一个线程访问并修改，而使用ThreadLocal创建的变量只能被当前线程访问，其他线程无法访问和修改。
+
+3、ThreadLocal的set方法存入的值，实际是放到当前线程的ThreadLocalMap实例中，key是当前ThreadLocal对象，value是存入的值。
+
+4、get方法直接从当前线程的ThreadLocalMap中，根据key获取对象
