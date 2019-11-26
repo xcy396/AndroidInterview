@@ -18,3 +18,10 @@
  * workQueue为工作队列，线程池的工作线程都是从这个工作队列源源不断的取出任务执行
  * threadFactory为创建新的工作线程时使用的工厂类
  * handler为拒绝任务时的饱和策略
+
+7、通常通过 Executors 类的如下几个静态方法来创建不同类型的线程池：
+
+* newCachedThreadPool：可缓存线程池，无限大
+* newFixedThreadPool：定长线程池
+* newScheduledThreadPool：定长线程池，支持定时及周期性任务执行
+* newSingleThreadExecutor：单个线程池
